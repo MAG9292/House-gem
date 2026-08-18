@@ -1,151 +1,214 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Finanzierungsanalyse & Immobilientool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-inner: #0f172a;
-      --border: #334155;
+      --bg: #090d16;
+      --card-bg: rgba(22, 30, 46, 0.7);
+      --card-inner: rgba(15, 23, 42, 0.6);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #38bdf8;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
-      --green: #4ade80;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --green: #34d399;
       --amber: #fbbf24;
       --red: #f87171;
       --purple: #c084fc;
-      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
       color: var(--text);
       font-family: var(--font-sans);
-      line-height: 1.4;
-      padding-bottom: 40px;
+      line-height: 1.5;
+      padding-bottom: 50px;
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
-      padding: 16px 20px;
+      padding: 20px 24px;
       text-align: center;
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(10px);
     }
-    header h1 { font-size: 20px; font-weight: 700; color: var(--accent); }
-    header p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+    }
+    header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight: 400; }
 
     nav {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      background: #1e293b;
-      padding: 8px;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(8px);
+      padding: 10px;
       border-bottom: 1px solid var(--border);
     }
     nav button {
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 8px 16px;
+      padding: 8px 18px;
       font-size: 13px;
-      font-weight: 600;
-      border-radius: 8px;
+      font-weight: 500;
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    nav button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
-    nav button.active { background: var(--accent); color: #0f172a; }
+    nav button:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    nav button.active {
+      background: var(--accent-glow);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      font-weight: 600;
+    }
 
     main {
-      max-width: 1100px;
-      margin: 20px auto;
-      padding: 0 16px;
+      max-width: 1140px;
+      margin: 28px auto;
+      padding: 0 20px;
     }
 
-    /* Grid-Layout für kompakte Eingabefelder */
+    /* Modern Grid Layouts */
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-bottom: 16px;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
     .card {
       background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
     }
 
     .card h2 {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: var(--accent);
-      margin-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .field {
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .field label {
       display: block;
       font-size: 11px;
+      font-weight: 500;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
     }
     .field input {
       width: 100%;
       background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 10px;
+      border-radius: 8px;
+      padding: 8px 12px;
       color: var(--text);
       font-size: 13px;
       font-family: var(--font-mono);
+      transition: all 0.2s ease;
     }
     .field input:focus {
       outline: none;
-      border-color: var(--accent);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
     }
     .field input[readonly] {
-      background: rgba(255,255,255,0.03);
+      background: rgba(0, 0, 0, 0.2);
       color: var(--text-muted);
+      border-color: transparent;
     }
 
     .field-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      gap: 12px;
     }
 
-    .stat-box {
+    /* Key Stats Highlight Box */
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 10px;
+    }
+    .stat-item {
       text-align: center;
     }
-    .stat-box .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
-    .stat-box .val { font-size: 15px; font-weight: 700; font-family: var(--font-mono); margin-top: 2px; color: var(--green); }
+    .stat-item .lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stat-item .val {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      margin-top: 4px;
+    }
 
     .table-container {
       overflow-x: auto;
-      background: var(--card-bg);
+      background: var(--card-inner);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-top: 12px;
+      border-radius: 12px;
+      margin-top: 14px;
     }
     table {
       width: 100%;
@@ -154,7 +217,7 @@
       font-size: 12px;
     }
     th, td {
-      padding: 8px 12px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border);
     }
     th {
@@ -163,7 +226,9 @@
       font-weight: 600;
       text-transform: uppercase;
       font-size: 10px;
+      letter-spacing: 0.05em;
     }
+    tr:last-child td { border-bottom: none; }
     td.num { font-family: var(--font-mono); text-align: right; }
     th.num { text-align: right; }
 
@@ -171,33 +236,37 @@
     .tab-content.active { display: block; }
 
     .total-highlight {
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--amber);
       font-family: var(--font-mono);
     }
 
-    /* Tabelleneingabe für Miete */
     .table-input {
       width: 100%;
-      background: var(--card-inner);
+      background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 4px 8px;
+      border-radius: 6px;
+      padding: 5px 8px;
       color: var(--text);
       font-family: var(--font-mono);
       text-align: right;
+      transition: border-color 0.2s;
+    }
+    .table-input:focus {
+      outline: none;
+      border-color: var(--accent);
     }
 
     @media (max-width: 768px) {
-      .grid-2 { grid-template-columns: 1fr; }
+      .grid-2, .hero-stats { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🏡 Finanzierungsanalyse & Immobilientool</h1>
+  <h1>Finanzierungsanalyse & Immobilientool</h1>
   <p>Dynamische Kaufpreis- & Tilgungsberechnung</p>
 </header>
 
@@ -211,7 +280,7 @@
   <!-- TAB 1: ÜBERSICHT -->
   <div id="uebersicht" class="tab-content active">
     
-    <!-- Halbierte Zeile 1: Kaufpreis & Eigenkapital -->
+    <!-- Zeile 1: Kaufpreis & Eigenkapital -->
     <div class="grid-2">
       <!-- Kaufpreis & Nebenkosten -->
       <div class="card">
@@ -222,7 +291,7 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <label>Grunderwerbsteuer (%)</label>
+            <label>Grunderwerbstr. (%)</label>
             <input type="number" step="0.1" id="p_steuer" value="6.5" oninput="recalculate()">
           </div>
           <div class="field">
@@ -240,14 +309,14 @@
             <input type="number" step="0.01" id="p_makler" value="3.57" oninput="recalculate()">
           </div>
         </div>
-        <div style="margin-top:8px; border-top: 1px dashed var(--border); padding-top:6px;">
+        <div style="margin-top:10px; border-top: 1px dashed var(--border); padding-top:8px;">
           <div class="field-row">
             <div>
-              <span style="font-size:10px; color:var(--text-muted);">Nebenkosten:</span>
+              <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Nebenkosten:</span>
               <div id="out_nebenkosten" class="total-highlight" style="color:var(--text);">0 €</div>
             </div>
             <div>
-              <span style="font-size:10px; color:var(--text-muted);">Gesamtkosten:</span>
+              <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Gesamtkosten:</span>
               <div id="out_gesamtkosten" class="total-highlight">0 €</div>
             </div>
           </div>
@@ -288,7 +357,7 @@
       </div>
     </div>
 
-    <!-- Halbierte Zeile 2: Betriebskosten & Stammdaten -->
+    <!-- Zeile 2: Betriebskosten & Stammdaten -->
     <div class="grid-2">
       <!-- Betriebskosten & Rücklagen -->
       <div class="card">
@@ -305,7 +374,7 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <label>Grundsteuer, Müll, Abwasser (€)</label>
+            <label>Grundstr., Müll, Abwasser (€)</label>
             <input type="number" class="bk-calc" id="bk_gemeinde" value="80" oninput="recalculate()">
           </div>
           <div class="field">
@@ -319,13 +388,13 @@
             <input type="number" class="bk-calc" id="bk_internet" value="55" oninput="recalculate()">
           </div>
           <div class="field">
-            <label>Instandhaltungsrücklage (€)</label>
+            <label>Instandhaltung (€)</label>
             <input type="number" class="bk-calc" id="bk_instand" value="529" oninput="recalculate()">
           </div>
         </div>
-        <div style="margin-top:6px; padding-top:6px; border-top:1px dashed var(--border);">
-          <span style="font-size:10px; color:var(--text-muted);">Summe Nebenkosten & Rücklage:</span>
-          <div id="out_bk_summe" style="font-size:15px; font-weight:700; color:var(--purple); font-family:var(--font-mono);">0 € / Mo.</div>
+        <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border);">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Summe Nebenkosten & Rücklage:</span>
+          <div id="out_bk_summe" style="font-size:16px; font-weight:700; color:var(--purple); font-family:var(--font-mono);">0 € / Mo.</div>
         </div>
       </div>
 
@@ -347,7 +416,7 @@
           <input type="number" id="grundstueck" value="427" oninput="recalculate()">
         </div>
 
-        <div class="table-container" style="margin-top:6px;">
+        <div class="table-container">
           <table>
             <tbody>
               <tr><td>Preis pro m² Wohnfläche</td><td class="num" id="td_pm2_wohn">0 €/m²</td></tr>
@@ -358,26 +427,40 @@
       </div>
     </div>
 
-    <!-- Zusammenfassung des Finanzierungsszenarios -->
+    <!-- Zusammenfassung Dashboard -->
     <div class="card">
       <h2>⚖️ Finanzierungsübersicht</h2>
-      <div class="grid-2" style="margin-bottom:0;">
-        <div>
-          <p style="font-size:13px; margin-bottom:4px;">Nettodarlehen: <strong id="out_darlehen" style="color:var(--accent);">0 €</strong></p>
-          <p style="font-size:13px; margin-bottom:4px;">Zinsdeckungs-Mindestrate: <strong id="out_mindestrate" style="color:var(--amber);">0 €</strong></p>
-          <p style="font-size:13px;">Gesamte Mtl. Wohnbelastung: <strong id="sz1_monat_gesamt" style="color:var(--green);">0 €</strong></p>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="lbl">Nettodarlehen</div>
+          <div class="val" id="out_darlehen" style="color:var(--accent);">0 €</div>
         </div>
-        <div>
-          <p style="font-size:13px; margin-bottom:4px;">Laufzeit: <strong id="sz1_laufzeit">0 Monate</strong></p>
-          <p style="font-size:13px; margin-bottom:4px;">Gesamtzinsen: <strong id="sz1_zinsen" style="color:var(--red);">0 €</strong></p>
-          <p style="font-size:13px;">Gesamtrückzahlung: <strong id="sz1_gesamt">0 €</strong></p>
+        <div class="stat-item">
+          <div class="lbl">Monatliche Belastung</div>
+          <div class="val" id="sz1_monat_gesamt" style="color:var(--green);">0 €</div>
+        </div>
+        <div class="stat-item">
+          <div class="lbl">Laufzeit</div>
+          <div class="val" id="sz1_laufzeit" style="color:var(--text);">0 Mo.</div>
+        </div>
+        <div class="stat-item">
+          <div class="lbl">Zinsdeckung (Min.)</div>
+          <div class="val" id="out_mindestrate" style="color:var(--amber);">0 €</div>
+        </div>
+        <div class="stat-item">
+          <div class="lbl">Gesamtzinsen</div>
+          <div class="val" id="sz1_zinsen" style="color:var(--red);">0 €</div>
+        </div>
+        <div class="stat-item">
+          <div class="lbl">Gesamtrückzahlung</div>
+          <div class="val" id="sz1_gesamt" style="color:var(--text);">0 €</div>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- TAB 2: EINZIGER TILGUNGSPLAN -->
+  <!-- TAB 2: TILGUNGSPLAN -->
   <div id="sz1" class="tab-content">
     <div class="card">
       <h2>📈 Tilgungsplan (Monatsgenau)</h2>
@@ -404,15 +487,15 @@
   <div id="miete" class="tab-content">
     <div class="card">
       <h2>🏢 Gegenüberstellung: Jetzige Mietwohnung</h2>
-      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-        Gib die monatlichen Mietkosten ein. Die übrigen Zeiträume werden automatisch hochgerechnet.
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+        Gibt deine monatlichen Kosten ein. Die übrigen Zeiträume werden automatisch hochgerechnet.
       </p>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>Kostenposition</th>
-              <th class="num" style="width: 150px;">Monatlich (€)</th>
+              <th class="num" style="width: 140px;">Monatlich (€)</th>
               <th class="num">Jährlich (€)</th>
               <th class="num">10 Jahre (€)</th>
               <th class="num">20 Jahre (€)</th>
@@ -447,7 +530,7 @@
               <td class="num" id="m_internet_10y">0 €</td>
               <td class="num" id="m_internet_20y">0 €</td>
             </tr>
-            <tr style="font-weight:bold; background:rgba(255,255,255,0.03);">
+            <tr style="font-weight:600; background:rgba(255,255,255,0.02);">
               <td>Gesamtkosten Mietwohnung</td>
               <td class="num" id="m_tot_mo" style="color:var(--amber);">0 €</td>
               <td class="num" id="m_tot_1y">0 €</td>
@@ -529,10 +612,10 @@ function calculateAmortization(darlehen, zinsPa, monatsrate, sonderPa) {
 }
 
 function formatDuration(monate) {
-  if (monate === Infinity) return 'Unendlich (Rate zu gering)';
+  if (monate === Infinity) return 'Unendlich';
   let jahre = Math.floor(monate / 12);
   let restMonate = monate % 12;
-  return `${jahre} Jahre ${restMonate} Monate (${monate} Mo.)`;
+  return `${jahre} J. ${restMonate} M.`;
 }
 
 function renderTable(tableId, schedule) {
@@ -598,7 +681,7 @@ function recalculate() {
   document.getElementById('td_pm2_grund').textContent = (kaufpreis > 0 && grundstueck > 0) 
     ? (kaufpreis / grundstueck).toFixed(2).replace('.', ',') + ' €/m²' : '-';
 
-  // Szenario 1
+  // Szenario
   let sz1 = calculateAmortization(darlehen, zinssatz, parseFloat(document.getElementById('rate_sz1').value)||0, parseFloat(document.getElementById('sonder_sz1').value)||0);
 
   document.getElementById('sz1_monat_gesamt').textContent = fmtEUR((parseFloat(document.getElementById('rate_sz1').value)||0) + bkSumme);
