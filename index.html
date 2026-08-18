@@ -1,0 +1,697 @@
+Hier ist der fertige HTML-Code für deine Finanzierungsanalyse & Immobilientool-Webseite.
+Der Code überführt sämtliche Berechnungen, Kaufnebenkosten, Eigenkapitalwerte, laufende Betriebskosten, Mietvergleiche sowie die exakten monatlichen Tilgungspläne für alle 3 Szenarien aus deiner Excel-Datei in ein modernes, interaktives Dashboard.
+Sämtliche Eingabefelder (Kaufpreis, Nebenkosten-Prozentsätze, Eigenkapital, Zinsfuß, monatliche Raten, Sondertilgungen und Betriebskosten) sind dynamisch – bei einer Änderung werden alle Gesamtkosten, Kreditbedarfe, Laufzeiten, Zinsaufwände sowie die kompletten Monats-Tilgungspläne in Echtzeit neu berechnet.
+Dateicode (index.html)
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Finanzierungsanalyse & Szenarienvergleich</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --red: #f87171;
+      --purple: #c084fc;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    header h1 { font-size: 24px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; }
+    header p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      background: #1e293b;
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    nav button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    nav button:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    nav button.active { background: var(--accent); color: #0f172a; }
+
+    main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .field input, .field select {
+      width: 100%;
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: var(--font-mono);
+      transition: border-color 0.2s;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: var(--card-inner);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-box .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-box .val { font-size: 18px; font-weight: 700; font-family: var(--font-mono); margin-top: 4px; color: var(--green); }
+
+    .scenario-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .scenario-card:hover { transform: translateY(-2px); }
+    .scenario-card.best { border-color: var(--green); }
+    .scenario-card h3 { font-size: 18px; margin-bottom: 14px; color: var(--text); display: flex; justify-content: space-between; }
+
+    .table-container {
+      overflow-x: auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(255,255,255,0.02);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    td.num { font-family: var(--font-mono); text-align: right; }
+    th.num { text-align: right; }
+
+    .badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-green { background: rgba(74, 222, 128, 0.15); color: var(--green); }
+    .badge-amber { background: rgba(251, 191, 36, 0.15); color: var(--amber); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .total-highlight {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--amber);
+      font-family: var(--font-mono);
+    }
+
+    @media (max-width: 768px) {
+      .field-row { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🏡 Finanzierungsanalyse & Immobilientool</h1>
+  <p>Dynamische Kaufpreis- & Tilgungsberechnung für Einfamilienhaus</p>
+</header>
+
+<nav>
+  <button class="active" onclick="switchTab('uebersicht')">📊 Übersicht & Rechner</button>
+  <button onclick="switchTab('sz1')">📈 Tilgungsplan Sz 1</button>
+  <button onclick="switchTab('sz2')">🚀 Tilgungsplan Sz 2</button>
+  <button onclick="switchTab('sz3')">⚖️ Tilgungsplan Sz 3</button>
+  <button onclick="switchTab('miete')">🏢 Miete vs. Kauf</button>
+</nav>
+
+<main>
+  <!-- TAB 1: ÜBERSICHT & DYNAMISCHER RECHNER -->
+  <div id="uebersicht" class="tab-content active">
+    
+    <div class="grid">
+      <!-- Kaufpreis & Nebenkosten -->
+      <div class="card">
+        <h2>🏷️ Kaufpreis & Nebenkosten</h2>
+        <div class="field">
+          <label>Kaufpreis (€)</label>
+          <input type="number" id="kaufpreis" value="529000" oninput="recalculate()">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Grunderwerbsteuer (%)</label>
+            <input type="number" step="0.1" id="p_steuer" value="6.5" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Notar (%)</label>
+            <input type="number" step="0.1" id="p_notar" value="1.5" oninput="recalculate()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Grundbuch (%)</label>
+            <input type="number" step="0.1" id="p_grundbuch" value="0.5" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Makler (inkl. MwSt) (%)</label>
+            <input type="number" step="0.01" id="p_makler" value="3.57" oninput="recalculate()">
+          </div>
+        </div>
+        <div style="margin-top:15px; border-top: 1px dashed var(--border); padding-top:10px;">
+          <div class="field-row">
+            <div>
+              <span style="font-size:12px; color:var(--text-muted);">Nebenkosten gesamt:</span>
+              <div id="out_nebenkosten" class="total-highlight" style="font-size:16px; color:var(--text);">0 €</div>
+            </div>
+            <div>
+              <span style="font-size:12px; color:var(--text-muted);">Gesamtkosten:</span>
+              <div id="out_gesamtkosten" class="total-highlight" style="font-size:16px;">0 €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eigenkapital & Finanzierung -->
+      <div class="card">
+        <h2>🏦 Eigenkapital & Kredit</h2>
+        <div class="field">
+          <label>Eigenkapital (€)</label>
+          <input type="number" id="eigenkapital" value="105800" oninput="recalculate()">
+        </div>
+        <div class="field">
+          <label>Sollzinssatz (p.a. in %)</label>
+          <input type="number" step="0.01" id="zinssatz" value="3.74" oninput="recalculate()">
+        </div>
+        <div style="margin-top:20px;">
+          <div class="stat-box" style="margin-bottom:10px;">
+            <div class="lbl">Nettodarlehensbetrag (Kreditbedarf)</div>
+            <div id="out_darlehen" class="val" style="color:var(--accent);">0 €</div>
+          </div>
+          <div class="stat-box">
+            <div class="lbl">Mindestrate für Zinsdeckung (0% Tilgung)</div>
+            <div id="out_mindestrate" class="val" style="color:var(--amber);">0 € / Monat</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Betriebskosten & Rücklagen -->
+      <div class="card">
+        <h2>🧹 Betriebskosten & Rücklagen (Monatlich)</h2>
+        <div class="field-row">
+          <div class="field">
+            <label>Heizung & Warmwasser (€)</label>
+            <input type="number" id="bk_heizung" value="130" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Strom (€)</label>
+            <input type="number" id="bk_strom" value="100" oninput="recalculate()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Grundsteuer, Müll, Abwasser (€)</label>
+            <input type="number" id="bk_gemeinde" value="80" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Versicherungen (€)</label>
+            <input type="number" id="bk_vers" value="50" oninput="recalculate()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Internet & Sonstiges (€)</label>
+            <input type="number" id="bk_internet" value="55" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Instandhaltungsrücklage (€)</label>
+            <input type="number" id="bk_instand" value="529" oninput="recalculate()">
+          </div>
+        </div>
+        <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--border);">
+          <span style="font-size:12px; color:var(--text-muted);">Summe Nebenkosten & Rücklage:</span>
+          <div id="out_bk_summe" style="font-size:18px; font-weight:700; color:var(--purple); font-family:var(--font-mono);">0 € / Mo.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SZENARIEN-VERGLEICH -->
+    <h2 style="margin: 30px 0 16px; color:var(--accent);">⚖️ Vergleich der 3 Tilgungsszenarien</h2>
+    
+    <div class="grid">
+      <!-- Szenario 1 -->
+      <div class="scenario-card">
+        <h3>Szenario 1 <span class="badge badge-amber">Standard</span></h3>
+        <div class="field-row">
+          <div class="field">
+            <label>Monatliche Rate (€)</label>
+            <input type="number" id="rate_sz1" value="2300" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Sondertilgung p.a. (€)</label>
+            <input type="number" id="sonder_sz1" value="0" oninput="recalculate()">
+          </div>
+        </div>
+        <div style="margin-top:15px; font-size:13px; line-height:1.8;">
+          <div>Monatliche Wohnbelastung: <strong id="sz1_monat_gesamt" class="num">0 €</strong></div>
+          <div>Laufzeit: <strong id="sz1_laufzeit">0 Monate</strong></div>
+          <div>Gesamtzinsen: <strong id="sz1_zinsen" style="color:var(--red);">0 €</strong></div>
+          <div>Gesamtrückzahlung: <strong id="sz1_gesamt">0 €</strong></div>
+        </div>
+      </div>
+
+      <!-- Szenario 2 -->
+      <div class="scenario-card best">
+        <h3>Szenario 2 <span class="badge badge-green">Schnell-Tilger</span></h3>
+        <div class="field-row">
+          <div class="field">
+            <label>Monatliche Rate (€)</label>
+            <input type="number" id="rate_sz2" value="2500" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Sondertilgung p.a. (€)</label>
+            <input type="number" id="sonder_sz2" value="6000" oninput="recalculate()">
+          </div>
+        </div>
+        <div style="margin-top:15px; font-size:13px; line-height:1.8;">
+          <div>Monatliche Wohnbelastung: <strong id="sz2_monat_gesamt" class="num">0 €</strong></div>
+          <div>Laufzeit: <strong id="sz2_laufzeit">0 Monate</strong></div>
+          <div>Gesamtzinsen: <strong id="sz2_zinsen" style="color:var(--green);">0 €</strong></div>
+          <div>Gesamtrückzahlung: <strong id="sz2_gesamt">0 €</strong></div>
+          <div style="color:var(--green); font-weight:700; margin-top:5px;">Zinsersparnis ggü. Sz 1: <span id="sz2_ersparnis">0 €</span></div>
+        </div>
+      </div>
+
+      <!-- Szenario 3 -->
+      <div class="scenario-card">
+        <h3>Szenario 3 <span class="badge badge-amber">Ausgewogen</span></h3>
+        <div class="field-row">
+          <div class="field">
+            <label>Monatliche Rate (€)</label>
+            <input type="number" id="rate_sz3" value="2400" oninput="recalculate()">
+          </div>
+          <div class="field">
+            <label>Sondertilgung p.a. (€)</label>
+            <input type="number" id="sonder_sz3" value="1200" oninput="recalculate()">
+          </div>
+        </div>
+        <div style="margin-top:15px; font-size:13px; line-height:1.8;">
+          <div>Monatliche Wohnbelastung: <strong id="sz3_monat_gesamt" class="num">0 €</strong></div>
+          <div>Laufzeit: <strong id="sz3_laufzeit">0 Monate</strong></div>
+          <div>Gesamtzinsen: <strong id="sz3_zinsen" style="color:var(--amber);">0 €</strong></div>
+          <div>Gesamtrückzahlung: <strong id="sz3_gesamt">0 €</strong></div>
+          <div style="color:var(--green); font-weight:700; margin-top:5px;">Zinsersparnis ggü. Sz 1: <span id="sz3_ersparnis">0 €</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GEGENÜBERSTELLUNG STAMMDATEN -->
+    <div class="card" style="margin-top:24px;">
+      <h2>🏠 Stammdaten der Immobilie</h2>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Eigenschaft / Kennzahl</th>
+              <th class="num">Wert</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Kaufpreis</td><td class="num" id="td_kaufpreis">529.000 €</td></tr>
+            <tr><td>Wohnfläche</td><td class="num">111 m²</td></tr>
+            <tr><td>Preis pro m² Wohnfläche</td><td class="num" id="td_pm2_wohn">4.765,77 €/m²</td></tr>
+            <tr><td>Zimmeranzahl</td><td class="num">4</td></tr>
+            <tr><td>Grundstücksfläche</td><td class="num">427 m²</td></tr>
+            <tr><td>Preis pro m² Grundstück</td><td class="num" id="td_pm2_grund">1.238,88 €/m²</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: TILGUNGSPLAN SZ1 -->
+  <div id="sz1" class="tab-content">
+    <div class="card">
+      <h2>📈 Tilgungsplan — Szenario 1 (Monatsgenau)</h2>
+      <div class="table-container">
+        <table id="table_sz1">
+          <thead>
+            <tr>
+              <th>Monat</th>
+              <th class="num">Anfangssaldo</th>
+              <th class="num">Zinsen</th>
+              <th class="num">Tilgung</th>
+              <th class="num">Sondertilgung</th>
+              <th class="num">Gesamtzahlung</th>
+              <th class="num">Restsaldo</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: TILGUNGSPLAN SZ2 -->
+  <div id="sz2" class="tab-content">
+    <div class="card">
+      <h2>🚀 Tilgungsplan — Szenario 2 (Monatsgenau)</h2>
+      <div class="table-container">
+        <table id="table_sz2">
+          <thead>
+            <tr>
+              <th>Monat</th>
+              <th class="num">Anfangssaldo</th>
+              <th class="num">Zinsen</th>
+              <th class="num">Tilgung</th>
+              <th class="num">Sondertilgung</th>
+              <th class="num">Gesamtzahlung</th>
+              <th class="num">Restsaldo</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: TILGUNGSPLAN SZ3 -->
+  <div id="sz3" class="tab-content">
+    <div class="card">
+      <h2>⚖️ Tilgungsplan — Szenario 3 (Monatsgenau)</h2>
+      <div class="table-container">
+        <table id="table_sz3">
+          <thead>
+            <tr>
+              <th>Monat</th>
+              <th class="num">Anfangssaldo</th>
+              <th class="num">Zinsen</th>
+              <th class="num">Tilgung</th>
+              <th class="num">Sondertilgung</th>
+              <th class="num">Gesamtzahlung</th>
+              <th class="num">Restsaldo</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 5: MIETE VS. KAUF -->
+  <div id="miete" class="tab-content">
+    <div class="card">
+      <h2>🏢 Gegenüberstellung: Jetzige Mietwohnung</h2>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+        Kostenaufstellung der aktuellen Mietsituation als Vergleichsmaßstab.
+      </p>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Kostenposition</th>
+              <th class="num">Monatlich (€)</th>
+              <th class="num">Jährlich (€)</th>
+              <th class="num">10 Jahre (€)</th>
+              <th class="num">20 Jahre (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Kaltmiete / Hauptmiete</td><td class="num">900,00 €</td><td class="num">10.800,00 €</td><td class="num">108.000,00 €</td><td class="num">216.000,00 €</td></tr>
+            <tr><td>Garage / Stellplatz</td><td class="num">50,00 €</td><td class="num">600,00 €</td><td class="num">6.000,00 €</td><td class="num">12.000,00 €</td></tr>
+            <tr><td>Strom</td><td class="num">75,00 €</td><td class="num">900,00 €</td><td class="num">9.000,00 €</td><td class="num">18.000,00 €</td></tr>
+            <tr><td>Internet & Telefon</td><td class="num">55,00 €</td><td class="num">660,00 €</td><td class="num">6.600,00 €</td><td class="num">13.200,00 €</td></tr>
+            <tr style="font-weight:bold; background:rgba(255,255,255,0.03);">
+              <td>Gesamtkosten Mietwohnung</td>
+              <td class="num" style="color:var(--amber);">1.080,00 €</td>
+              <td class="num">12.960,00 €</td>
+              <td class="num">129.600,00 €</td>
+              <td class="num">259.200,00 €</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function fmtEUR(n) {
+  return n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function calculateAmortization(darlehen, zinsPa, monatsrate, sonderPa) {
+  let saldo = darlehen;
+  let zinsMonatlich = zinsPa / 12 / 100;
+  let schedule = [];
+  let monat = 1;
+  let gesamtzinsen = 0;
+
+  while (saldo > 0.01 && monat <= 600) {
+    let zins = saldo * zinsMonatlich;
+    let tilgung = monatsrate - zins;
+    
+    if (tilgung < 0) {
+      return { schedule: [], monate: Infinity, gesamtzinsen: Infinity };
+    }
+
+    let sonder = 0;
+    if (monat % 12 === 0 && sonderPa > 0) {
+      sonder = sonderPa;
+    }
+
+    let gesamtTilgung = tilgung + sonder;
+    if (gesamtTilgung > saldo) {
+      gesamtTilgung = saldo;
+      tilgung = Math.max(0, saldo - sonder);
+    }
+
+    let gesamtzahlung = zins + tilgung + sonder;
+    let restsaldo = saldo - gesamtTilgung;
+    if (restsaldo < 0) restsaldo = 0;
+
+    gesamtzinsen += zins;
+
+    schedule.push({
+      monat,
+      anfang: saldo,
+      zins,
+      tilgung,
+      sonder,
+      zahlung: gesamtzahlung,
+      rest: restsaldo
+    });
+
+    saldo = restsaldo;
+    monat++;
+  }
+
+  return {
+    schedule,
+    monate: schedule.length,
+    gesamtzinsen
+  };
+}
+
+function formatDuration(monate) {
+  if (monate === Infinity) return 'Unendlich (Rate deckt Zinsen nicht)';
+  let jahre = Math.floor(monate / 12);
+  let restMonate = monate % 12;
+  return `${jahre} Jahre ${restMonate} Monate (${monate} Mo.)`;
+}
+
+function renderTable(tableId, schedule) {
+  let tbody = document.getElementById(tableId).querySelector('tbody');
+  tbody.innerHTML = schedule.map(r => `
+    <tr>
+      <td>${r.monat}</td>
+      <td class="num">${fmtEUR(r.anfang)}</td>
+      <td class="num" style="color:var(--red);">${fmtEUR(r.zins)}</td>
+      <td class="num" style="color:var(--green);">${fmtEUR(r.tilgung)}</td>
+      <td class="num" style="color:var(--amber);">${fmtEUR(r.sonder)}</td>
+      <td class="num">${fmtEUR(r.zahlung)}</td>
+      <td class="num" style="font-weight:600;">${fmtEUR(r.rest)}</td>
+    </tr>
+  `).join('');
+}
+
+function recalculate() {
+  let kaufpreis = parseFloat(document.getElementById('kaufpreis').value) || 0;
+  let pSteuer = (parseFloat(document.getElementById('p_steuer').value) || 0) / 100;
+  let pNotar = (parseFloat(document.getElementById('p_notar').value) || 0) / 100;
+  let pGrundbuch = (parseFloat(document.getElementById('p_grundbuch').value) || 0) / 100;
+  let pMakler = (parseFloat(document.getElementById('p_makler').value) || 0) / 100;
+
+  let nebenkosten = kaufpreis * (pSteuer + pNotar + pGrundbuch + pMakler);
+  let gesamtkosten = kaufpreis + nebenkosten;
+
+  let ek = parseFloat(document.getElementById('eigenkapital').value) || 0;
+  let darlehen = Math.max(0, gesamtkosten - ek);
+  let zinssatz = parseFloat(document.getElementById('zinssatz').value) || 0;
+
+  let mindestrate = darlehen * (zinssatz / 100 / 12);
+
+  // Betriebskosten
+  let bkSumme = ['bk_heizung', 'bk_strom', 'bk_gemeinde', 'bk_vers', 'bk_internet', 'bk_instand']
+    .reduce((s, id) => s + (parseFloat(document.getElementById(id).value) || 0), 0);
+
+  // Updates im DOM
+  document.getElementById('out_nebenkosten').textContent = fmtEUR(nebenkosten);
+  document.getElementById('out_gesamtkosten').textContent = fmtEUR(gesamtkosten);
+  document.getElementById('out_darlehen').textContent = fmtEUR(darlehen);
+  document.getElementById('out_mindestrate').textContent = fmtEUR(mindestrate);
+  document.getElementById('out_bk_summe').textContent = fmtEUR(bkSumme) + ' / Mo.';
+
+  document.getElementById('td_kaufpreis').textContent = fmtEUR(kaufpreis);
+  document.getElementById('td_pm2_wohn').textContent = (kaufpreis / 111).toFixed(2).replace('.', ',') + ' €/m²';
+  document.getElementById('td_pm2_grund').textContent = (kaufpreis / 427).toFixed(2).replace('.', ',') + ' €/m²';
+
+  // Szenarien
+  let sz1 = calculateAmortization(darlehen, zinssatz, parseFloat(document.getElementById('rate_sz1').value)||0, parseFloat(document.getElementById('sonder_sz1').value)||0);
+  let sz2 = calculateAmortization(darlehen, zinssatz, parseFloat(document.getElementById('rate_sz2').value)||0, parseFloat(document.getElementById('sonder_sz2').value)||0);
+  let sz3 = calculateAmortization(darlehen, zinssatz, parseFloat(document.getElementById('rate_sz3').value)||0, parseFloat(document.getElementById('sonder_sz3').value)||0);
+
+  // Sz 1
+  document.getElementById('sz1_monat_gesamt').textContent = fmtEUR((parseFloat(document.getElementById('rate_sz1').value)||0) + bkSumme);
+  document.getElementById('sz1_laufzeit').textContent = formatDuration(sz1.monate);
+  document.getElementById('sz1_zinsen').textContent = fmtEUR(sz1.gesamtzinsen);
+  document.getElementById('sz1_gesamt').textContent = fmtEUR(darlehen + sz1.gesamtzinsen);
+  renderTable('table_sz1', sz1.schedule);
+
+  // Sz 2
+  document.getElementById('sz2_monat_gesamt').textContent = fmtEUR((parseFloat(document.getElementById('rate_sz2').value)||0) + bkSumme);
+  document.getElementById('sz2_laufzeit').textContent = formatDuration(sz2.monate);
+  document.getElementById('sz2_zinsen').textContent = fmtEUR(sz2.gesamtzinsen);
+  document.getElementById('sz2_gesamt').textContent = fmtEUR(darlehen + sz2.gesamtzinsen);
+  document.getElementById('sz2_ersparnis').textContent = fmtEUR(sz1.gesamtzinsen - sz2.gesamtzinsen);
+  renderTable('table_sz2', sz2.schedule);
+
+  // Sz 3
+  document.getElementById('sz3_monat_gesamt').textContent = fmtEUR((parseFloat(document.getElementById('rate_sz3').value)||0) + bkSumme);
+  document.getElementById('sz3_laufzeit').textContent = formatDuration(sz3.monate);
+  document.getElementById('sz3_zinsen').textContent = fmtEUR(sz3.gesamtzinsen);
+  document.getElementById('sz3_gesamt').textContent = fmtEUR(darlehen + sz3.gesamtzinsen);
+  document.getElementById('sz3_ersparnis').textContent = fmtEUR(sz1.gesamtzinsen - sz3.gesamtzinsen);
+  renderTable('table_sz3', sz3.schedule);
+}
+
+recalculate();
+</script>
+</body>
+</html>
+
+So lädst du die Datei auf GitHub hoch:
+ * Kopiere den oben stehenden Code vollständig.
+ * Öffne dein GitHub-Repository im Browser.
+ * Erstelle eine neue Datei namens index.html (oder ersetze den bestehenden Inhalt).
+ * Füge den Code ein und klicke auf Commit changes....
