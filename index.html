@@ -96,7 +96,6 @@
       padding: 0 20px;
     }
 
-    /* Modern Grid Layouts */
     .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -176,7 +175,6 @@
       gap: 12px;
     }
 
-    /* Key Stats Highlight Box */
     .hero-stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -280,7 +278,6 @@
   <!-- TAB 1: ÜBERSICHT -->
   <div id="uebersicht" class="tab-content active">
     
-    <!-- Zeile 1: Kaufpreis & Eigenkapital -->
     <div class="grid-2">
       <!-- Kaufpreis & Nebenkosten -->
       <div class="card">
@@ -357,7 +354,6 @@
       </div>
     </div>
 
-    <!-- Zeile 2: Betriebskosten & Stammdaten -->
     <div class="grid-2">
       <!-- Betriebskosten & Rücklagen -->
       <div class="card">
@@ -488,7 +484,7 @@
     <div class="card">
       <h2>🏢 Gegenüberstellung: Jetzige Mietwohnung</h2>
       <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
-        Gibt deine monatlichen Kosten ein. Die übrigen Zeiträume werden automatisch hochgerechnet.
+        Gib deine monatlichen Kosten ein. Die übrigen Zeiträume werden automatisch hochgerechnet.
       </p>
       <div class="table-container">
         <table>
@@ -530,6 +526,44 @@
               <td class="num" id="m_internet_10y">0 €</td>
               <td class="num" id="m_internet_20y">0 €</td>
             </tr>
+            
+            <!-- 5 NEUE SONSTIGES-ZEILEN -->
+            <tr>
+              <td>Sonstiges 1</td>
+              <td class="num"><input type="number" id="m_sonstiges1" class="table-input" value="0" placeholder="0" oninput="calcMiete()"></td>
+              <td class="num" id="m_sonstiges1_1y">0 €</td>
+              <td class="num" id="m_sonstiges1_10y">0 €</td>
+              <td class="num" id="m_sonstiges1_20y">0 €</td>
+            </tr>
+            <tr>
+              <td>Sonstiges 2</td>
+              <td class="num"><input type="number" id="m_sonstiges2" class="table-input" value="0" placeholder="0" oninput="calcMiete()"></td>
+              <td class="num" id="m_sonstiges2_1y">0 €</td>
+              <td class="num" id="m_sonstiges2_10y">0 €</td>
+              <td class="num" id="m_sonstiges2_20y">0 €</td>
+            </tr>
+            <tr>
+              <td>Sonstiges 3</td>
+              <td class="num"><input type="number" id="m_sonstiges3" class="table-input" value="0" placeholder="0" oninput="calcMiete()"></td>
+              <td class="num" id="m_sonstiges3_1y">0 €</td>
+              <td class="num" id="m_sonstiges3_10y">0 €</td>
+              <td class="num" id="m_sonstiges3_20y">0 €</td>
+            </tr>
+            <tr>
+              <td>Sonstiges 4</td>
+              <td class="num"><input type="number" id="m_sonstiges4" class="table-input" value="0" placeholder="0" oninput="calcMiete()"></td>
+              <td class="num" id="m_sonstiges4_1y">0 €</td>
+              <td class="num" id="m_sonstiges4_10y">0 €</td>
+              <td class="num" id="m_sonstiges4_20y">0 €</td>
+            </tr>
+            <tr>
+              <td>Sonstiges 5</td>
+              <td class="num"><input type="number" id="m_sonstiges5" class="table-input" value="0" placeholder="0" oninput="calcMiete()"></td>
+              <td class="num" id="m_sonstiges5_1y">0 €</td>
+              <td class="num" id="m_sonstiges5_10y">0 €</td>
+              <td class="num" id="m_sonstiges5_20y">0 €</td>
+            </tr>
+
             <tr style="font-weight:600; background:rgba(255,255,255,0.02);">
               <td>Gesamtkosten Mietwohnung</td>
               <td class="num" id="m_tot_mo" style="color:var(--amber);">0 €</td>
@@ -643,7 +677,6 @@ function recalculate() {
   let nebenkosten = kaufpreis * (pSteuer + pNotar + pGrundbuch + pMakler);
   let gesamtkosten = kaufpreis + nebenkosten;
 
-  // EK Quoten
   let empfEK = gesamtkosten * 0.20;
   document.getElementById('ek_empfohlen').value = fmtEUR(empfEK);
 
@@ -660,18 +693,15 @@ function recalculate() {
 
   let mindestrate = darlehen * (zinssatz / 100 / 12);
 
-  // Betriebskosten
   let bkSumme = Array.from(document.querySelectorAll('.bk-calc'))
     .reduce((s, el) => s + (parseFloat(el.value) || 0), 0);
 
-  // DOM Updates
   document.getElementById('out_nebenkosten').textContent = fmtEUR(nebenkosten);
   document.getElementById('out_gesamtkosten').textContent = fmtEUR(gesamtkosten);
   document.getElementById('out_darlehen').textContent = fmtEUR(darlehen);
   document.getElementById('out_mindestrate').textContent = fmtEUR(mindestrate) + ' / Mo.';
   document.getElementById('out_bk_summe').textContent = fmtEUR(bkSumme) + ' / Mo.';
 
-  // Stammdaten
   let wohnflaeche = parseFloat(document.getElementById('wohnflaeche').value) || 0;
   let grundstueck = parseFloat(document.getElementById('grundstueck').value) || 0;
 
@@ -681,7 +711,6 @@ function recalculate() {
   document.getElementById('td_pm2_grund').textContent = (kaufpreis > 0 && grundstueck > 0) 
     ? (kaufpreis / grundstueck).toFixed(2).replace('.', ',') + ' €/m²' : '-';
 
-  // Szenario
   let sz1 = calculateAmortization(darlehen, zinssatz, parseFloat(document.getElementById('rate_sz1').value)||0, parseFloat(document.getElementById('sonder_sz1').value)||0);
 
   document.getElementById('sz1_monat_gesamt').textContent = fmtEUR((parseFloat(document.getElementById('rate_sz1').value)||0) + bkSumme);
@@ -694,7 +723,8 @@ function recalculate() {
 }
 
 function calcMiete() {
-  let fields = ['kalt', 'garage', 'strom', 'internet'];
+  // Liste aller Felder inkl. den 5 neuen Sonstiges-Feldern
+  let fields = ['kalt', 'garage', 'strom', 'internet', 'sonstiges1', 'sonstiges2', 'sonstiges3', 'sonstiges4', 'sonstiges5'];
   let totalMo = 0;
 
   fields.forEach(f => {
